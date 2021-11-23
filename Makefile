@@ -1,4 +1,4 @@
-.PHONY: cppb
+.PHONY: cpgen
 
-cppb:
+cpgen:
 	cp -rv ../qae/pb .

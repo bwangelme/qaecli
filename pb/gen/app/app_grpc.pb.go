@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AppServiceClient interface {
 	Get(ctx context.Context, in *AppID, opts ...grpc.CallOption) (*App, error)
+	Double(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
 }
 
 type appServiceClient struct {
@@ -38,11 +39,21 @@ func (c *appServiceClient) Get(ctx context.Context, in *AppID, opts ...grpc.Call
 	return out, nil
 }
 
+func (c *appServiceClient) Double(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error) {
+	out := new(Number)
+	err := c.cc.Invoke(ctx, "/app.AppService/double", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServiceServer is the server API for AppService service.
 // All implementations must embed UnimplementedAppServiceServer
 // for forward compatibility
 type AppServiceServer interface {
 	Get(context.Context, *AppID) (*App, error)
+	Double(context.Context, *Number) (*Number, error)
 	mustEmbedUnimplementedAppServiceServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedAppServiceServer struct {
 
 func (UnimplementedAppServiceServer) Get(context.Context, *AppID) (*App, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedAppServiceServer) Double(context.Context, *Number) (*Number, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Double not implemented")
 }
 func (UnimplementedAppServiceServer) mustEmbedUnimplementedAppServiceServer() {}
 
@@ -84,6 +98,24 @@ func _AppService_Get_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppService_Double_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Number)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).Double(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/app.AppService/double",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).Double(ctx, req.(*Number))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AppService_ServiceDesc is the grpc.ServiceDesc for AppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var AppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "get",
 			Handler:    _AppService_Get_Handler,
+		},
+		{
+			MethodName: "double",
+			Handler:    _AppService_Double_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

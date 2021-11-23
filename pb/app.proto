@@ -5,6 +5,7 @@ option go_package = "gen/app";
 
 service AppService {
   rpc get(AppID) returns (App);
+  rpc double(Number) returns (Number);
 }
 
 message App {
@@ -15,4 +16,8 @@ message App {
 
 message AppID {
   string value = 1;
+}
+
+message Number {
+  int64 value = 1;
 }
