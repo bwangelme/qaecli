@@ -1,23 +1,30 @@
-package main
+package cmd
 
 import (
 	"context"
-	"flag"
 	"log"
+	pb "qaecli/pb/gen/app"
 	"time"
 
-	pb "qaecli/pb/gen/app"
-
+	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
 
 var (
-	num = flag.Int64("number", 42, "double input numer")
+	checkCmd *cobra.Command
 )
 
-func main() {
+func init() {
+	checkCmd = &cobra.Command{
+		Use: "check",
+		Run: checkMain,
+	}
+	checkCmd.PersistentFlags().Int64("num", 42, "Output NUMBER * 3 Result")
+}
+
+func checkMain(cmd *cobra.Command, args []string) {
 	addr := ":8000"
-	flag.Parse()
+	num, err := cmd.PersistentFlags().GetInt64("num")
 
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
@@ -29,9 +36,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := c.Double(ctx, &pb.Number{Value: *num})
+	r, err := c.Triple(ctx, &pb.Number{Value: num})
 	if err != nil {
 		log.Fatalln("grpc app get failed", err)
 	}
-	log.Printf("double %v = %v\n", *num, r.Value)
+	log.Printf("%v * 3 = %v\n", num, r.Value)
 }
