@@ -26,7 +26,6 @@ func Execute() {
 }
 
 func init() {
-	viper.SetEnvPrefix("QAECLI_")
 	cobra.OnInitialize(initConfig)
 
 	// init rootCmd flags
@@ -49,8 +48,6 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".qaecli")
 	}
-
-	viper.AutomaticEnv() // read in environment variables that match
 
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
