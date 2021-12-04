@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"log"
+	"qaecli/config"
 	pb "qaecli/pb/gen/app"
 	"time"
 
@@ -23,7 +24,7 @@ func init() {
 }
 
 func checkMain(cmd *cobra.Command, args []string) {
-	addr := ":8000"
+	addr := config.Server
 	num, err := cmd.PersistentFlags().GetInt64("num")
 
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
