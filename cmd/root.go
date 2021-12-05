@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"qaecli/config"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
@@ -50,7 +50,7 @@ func initConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		logrus.Infof("Using config file: %v", viper.ConfigFileUsed())
 	}
 
 	config.InitConfig()
