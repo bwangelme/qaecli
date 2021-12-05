@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AppServiceClient interface {
 	Get(ctx context.Context, in *AppID, opts ...grpc.CallOption) (*App, error)
 	Triple(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
+	Create(ctx context.Context, in *CreateReq, opts ...grpc.CallOption) (*CreateResp, error)
 }
 
 type appServiceClient struct {
@@ -32,7 +33,7 @@ func NewAppServiceClient(cc grpc.ClientConnInterface) AppServiceClient {
 
 func (c *appServiceClient) Get(ctx context.Context, in *AppID, opts ...grpc.CallOption) (*App, error) {
 	out := new(App)
-	err := c.cc.Invoke(ctx, "/app.AppService/get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/app.AppService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,12 +49,22 @@ func (c *appServiceClient) Triple(ctx context.Context, in *Number, opts ...grpc.
 	return out, nil
 }
 
+func (c *appServiceClient) Create(ctx context.Context, in *CreateReq, opts ...grpc.CallOption) (*CreateResp, error) {
+	out := new(CreateResp)
+	err := c.cc.Invoke(ctx, "/app.AppService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServiceServer is the server API for AppService service.
 // All implementations must embed UnimplementedAppServiceServer
 // for forward compatibility
 type AppServiceServer interface {
 	Get(context.Context, *AppID) (*App, error)
 	Triple(context.Context, *Number) (*Number, error)
+	Create(context.Context, *CreateReq) (*CreateResp, error)
 	mustEmbedUnimplementedAppServiceServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedAppServiceServer) Get(context.Context, *AppID) (*App, error) 
 }
 func (UnimplementedAppServiceServer) Triple(context.Context, *Number) (*Number, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Triple not implemented")
+}
+func (UnimplementedAppServiceServer) Create(context.Context, *CreateReq) (*CreateResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (UnimplementedAppServiceServer) mustEmbedUnimplementedAppServiceServer() {}
 
@@ -90,7 +104,7 @@ func _AppService_Get_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/app.AppService/get",
+		FullMethod: "/app.AppService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServiceServer).Get(ctx, req.(*AppID))
@@ -116,6 +130,24 @@ func _AppService_Triple_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/app.AppService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).Create(ctx, req.(*CreateReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AppService_ServiceDesc is the grpc.ServiceDesc for AppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -124,12 +156,16 @@ var AppService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AppServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "get",
+			MethodName: "Get",
 			Handler:    _AppService_Get_Handler,
 		},
 		{
 			MethodName: "Triple",
 			Handler:    _AppService_Triple_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _AppService_Create_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
