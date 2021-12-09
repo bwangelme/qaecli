@@ -1,7 +1,7 @@
-.PHONY: build
+.PHONY: build clean
 
-build:
-	protoc --go_out=. --go-grpc_out=. app.proto
+build: clean
+	protoc --go_out=. --go-grpc_out=. app.proto commit.proto
 
 clean:
 	rm -rv gen/

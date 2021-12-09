@@ -9,7 +9,10 @@ service AppService {
   rpc Get(AppID) returns (App);
   rpc Triple(Number) returns (Number);
   rpc Create(CreateReq) returns (CreateResp);
+  rpc List(ListReq) returns (ListResp);
 }
+
+
 
 message App {
   string id = 1;
@@ -17,6 +20,16 @@ message App {
   string owner = 3;
   string repo = 4;
   google.protobuf.Timestamp created_time = 5;
+}
+
+message ListReq {
+  int64 start = 1;
+  int64 limit = 2;
+}
+
+message ListResp {
+  repeated App apps = 1;
+  int64 total = 2;
 }
 
 message CreateReq {
