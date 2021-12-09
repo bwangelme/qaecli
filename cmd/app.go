@@ -25,9 +25,48 @@ func init() {
 	}
 
 	appCmd.AddCommand(initCreateCmd())
+	appCmd.AddCommand(initListCmd())
 }
 
 func appMain(cmd *cobra.Command, args []string) {
+
+}
+
+func initListCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"l"},
+		Long:    "List App",
+		Run:     listMain,
+	}
+
+	return cmd
+}
+
+func listMain(cmd *cobra.Command, args []string) {
+	conn, err := grpc.Dial(config.Server, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalln("dail failed", err)
+	}
+	defer conn.Close()
+
+	c := pb.NewAppServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req := &pb.ListReq{
+		Start: 0,
+		Limit: 10,
+	}
+	r, err := c.List(ctx, req)
+	if err != nil {
+		log.Fatalln("grpc app list failed", err)
+	}
+
+	log.Printf("Total %d apps", r.Total)
+	for _, a := range r.Apps {
+		log.Printf("%v %v", a.Id, a.Name)
+	}
 
 }
 

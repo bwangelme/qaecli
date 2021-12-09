@@ -1,0 +1,33 @@
+syntax = "proto3";
+package commit;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "gen/commit";
+
+service CommitService {
+  rpc Create(CreateReq) returns (CreateResp);
+  rpc Get(CommitID) returns (Commit);
+}
+
+message Commit {
+  string id = 1;
+  string gitURL = 2;
+  string appYAML = 3;
+  google.protobuf.Timestamp created_time = 5;
+}
+
+message CommitID {
+  string value = 1;
+}
+
+message CreateReq {
+  string app = 1;
+  string gitCommit = 2;
+  string appYAML = 3;
+}
+
+message CreateResp {
+  string err = 1;
+  Commit commit = 2;
+}

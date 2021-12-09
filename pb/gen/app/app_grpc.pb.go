@@ -21,6 +21,7 @@ type AppServiceClient interface {
 	Get(ctx context.Context, in *AppID, opts ...grpc.CallOption) (*App, error)
 	Triple(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
 	Create(ctx context.Context, in *CreateReq, opts ...grpc.CallOption) (*CreateResp, error)
+	List(ctx context.Context, in *ListReq, opts ...grpc.CallOption) (*ListResp, error)
 }
 
 type appServiceClient struct {
@@ -58,6 +59,15 @@ func (c *appServiceClient) Create(ctx context.Context, in *CreateReq, opts ...gr
 	return out, nil
 }
 
+func (c *appServiceClient) List(ctx context.Context, in *ListReq, opts ...grpc.CallOption) (*ListResp, error) {
+	out := new(ListResp)
+	err := c.cc.Invoke(ctx, "/app.AppService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServiceServer is the server API for AppService service.
 // All implementations must embed UnimplementedAppServiceServer
 // for forward compatibility
@@ -65,6 +75,7 @@ type AppServiceServer interface {
 	Get(context.Context, *AppID) (*App, error)
 	Triple(context.Context, *Number) (*Number, error)
 	Create(context.Context, *CreateReq) (*CreateResp, error)
+	List(context.Context, *ListReq) (*ListResp, error)
 	mustEmbedUnimplementedAppServiceServer()
 }
 
@@ -80,6 +91,9 @@ func (UnimplementedAppServiceServer) Triple(context.Context, *Number) (*Number, 
 }
 func (UnimplementedAppServiceServer) Create(context.Context, *CreateReq) (*CreateResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedAppServiceServer) List(context.Context, *ListReq) (*ListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedAppServiceServer) mustEmbedUnimplementedAppServiceServer() {}
 
@@ -148,6 +162,24 @@ func _AppService_Create_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/app.AppService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).List(ctx, req.(*ListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AppService_ServiceDesc is the grpc.ServiceDesc for AppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +198,10 @@ var AppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _AppService_Create_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _AppService_List_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
