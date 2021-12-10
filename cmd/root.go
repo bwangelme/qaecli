@@ -50,7 +50,7 @@ func initConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
-		logrus.Infof("Using config file: %v", viper.ConfigFileUsed())
+		logrus.Debugf("Using config file: %v", viper.ConfigFileUsed())
 	}
 
 	config.InitConfig()
