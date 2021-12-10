@@ -3,16 +3,17 @@ package cmd
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"os"
-	"qaecli/config"
 	pb "qaecli/pb/gen/app"
+	"qaecli/qgrpc"
 	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 )
 
 var appCmd *cobra.Command
@@ -26,10 +27,71 @@ func init() {
 
 	appCmd.AddCommand(initCreateCmd())
 	appCmd.AddCommand(initListCmd())
+	appCmd.AddCommand(initDeleteCmd())
 }
 
 func appMain(cmd *cobra.Command, args []string) {
 
+}
+
+func initDeleteCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "delete",
+		Aliases: []string{"d"},
+		Long:    "Delete App",
+		Run:     DeleteMain,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("require id argument")
+			}
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func DeleteMain(cmd *cobra.Command, args []string) {
+	ids, err := strSliceToInt64Slice(strings.Split(args[0], ","))
+	if err != nil {
+		logrus.Fatalln("Invalid Arg Ids")
+	}
+	logrus.Infof("Start to delete app %v\n", ids)
+
+	c, df := qgrpc.NewAppClient()
+	defer df()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req := &pb.DeleteReq{
+		Ids: ids,
+	}
+
+	resp, err := c.Delete(ctx, req)
+	if err != nil {
+		logrus.Fatalln("grpc app delete failed", err)
+	}
+
+	if resp.Err != "" {
+		logrus.Fatalln("Delete app failed %v\n", resp.Err)
+	}
+
+	logrus.Infof("Delete %v apps\n", resp.Cnt)
+}
+
+func strSliceToInt64Slice(values []string) ([]int64, error) {
+	var res = make([]int64, 0)
+
+	for i := 0; i < len(values); i++ {
+		v, err := strconv.ParseInt(values[i], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, v)
+	}
+
+	return res, nil
 }
 
 func initListCmd() *cobra.Command {
@@ -44,13 +106,9 @@ func initListCmd() *cobra.Command {
 }
 
 func listMain(cmd *cobra.Command, args []string) {
-	conn, err := grpc.Dial(config.Server, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalln("dail failed", err)
-	}
-	defer conn.Close()
+	c, df := qgrpc.NewAppClient()
+	defer df()
 
-	c := pb.NewAppServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -60,12 +118,12 @@ func listMain(cmd *cobra.Command, args []string) {
 	}
 	r, err := c.List(ctx, req)
 	if err != nil {
-		log.Fatalln("grpc app list failed", err)
+		logrus.Fatalln("grpc app list failed", err)
 	}
 
-	log.Printf("Total %d apps", r.Total)
+	logrus.Printf("Total %d apps", r.Total)
 	for _, a := range r.Apps {
-		log.Printf("%v %v", a.Id, a.Name)
+		logrus.Printf("%v %v", a.Id, a.Name)
 	}
 
 }
@@ -103,13 +161,8 @@ func createMain(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	addr := config.Server
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalln("dial failed", addr, err)
-	}
-	defer conn.Close()
-	c := pb.NewAppServiceClient(conn)
+	c, df := qgrpc.NewAppClient()
+	defer df()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -120,14 +173,14 @@ func createMain(cmd *cobra.Command, args []string) {
 	}
 	r, err := c.Create(ctx, req)
 	if err != nil {
-		log.Fatalln("grpc app get failed", err)
+		logrus.Fatalln("grpc app get failed", err)
 	}
 
 	if r.Err != "" {
-		log.Printf("Create app failed %v\n", r.Err)
+		logrus.Fatalln("Create app failed %v\n", r.Err)
 	}
 
-	log.Printf("Create app %v success\n", r.App.Id)
+	logrus.Infof("Create app %v success\n", r.App.Id)
 }
 
 func isValidURL(repo string) bool {

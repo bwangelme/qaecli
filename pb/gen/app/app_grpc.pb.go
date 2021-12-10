@@ -22,6 +22,7 @@ type AppServiceClient interface {
 	Triple(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
 	Create(ctx context.Context, in *CreateReq, opts ...grpc.CallOption) (*CreateResp, error)
 	List(ctx context.Context, in *ListReq, opts ...grpc.CallOption) (*ListResp, error)
+	Delete(ctx context.Context, in *DeleteReq, opts ...grpc.CallOption) (*DeleteResp, error)
 }
 
 type appServiceClient struct {
@@ -68,6 +69,15 @@ func (c *appServiceClient) List(ctx context.Context, in *ListReq, opts ...grpc.C
 	return out, nil
 }
 
+func (c *appServiceClient) Delete(ctx context.Context, in *DeleteReq, opts ...grpc.CallOption) (*DeleteResp, error) {
+	out := new(DeleteResp)
+	err := c.cc.Invoke(ctx, "/app.AppService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServiceServer is the server API for AppService service.
 // All implementations must embed UnimplementedAppServiceServer
 // for forward compatibility
@@ -76,6 +86,7 @@ type AppServiceServer interface {
 	Triple(context.Context, *Number) (*Number, error)
 	Create(context.Context, *CreateReq) (*CreateResp, error)
 	List(context.Context, *ListReq) (*ListResp, error)
+	Delete(context.Context, *DeleteReq) (*DeleteResp, error)
 	mustEmbedUnimplementedAppServiceServer()
 }
 
@@ -94,6 +105,9 @@ func (UnimplementedAppServiceServer) Create(context.Context, *CreateReq) (*Creat
 }
 func (UnimplementedAppServiceServer) List(context.Context, *ListReq) (*ListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedAppServiceServer) Delete(context.Context, *DeleteReq) (*DeleteResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedAppServiceServer) mustEmbedUnimplementedAppServiceServer() {}
 
@@ -180,6 +194,24 @@ func _AppService_List_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/app.AppService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).Delete(ctx, req.(*DeleteReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AppService_ServiceDesc is the grpc.ServiceDesc for AppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +234,10 @@ var AppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _AppService_List_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _AppService_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
