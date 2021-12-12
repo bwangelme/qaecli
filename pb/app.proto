@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 option go_package = "gen/app";
 
 service AppService {
-  rpc Get(AppID) returns (App);
+  rpc Get(GetReq) returns (GetResp);
   rpc Triple(Number) returns (Number);
   rpc Create(CreateReq) returns (CreateResp);
   rpc List(ListReq) returns (ListResp);
@@ -14,11 +14,16 @@ service AppService {
 }
 
 message App {
-  string id = 1;
+  int64 id = 1;
   string name = 2;
   string owner = 3;
   string repo = 4;
   google.protobuf.Timestamp created_time = 5;
+}
+
+message GetResp {
+  string err = 1;
+  App app = 2;
 }
 
 message DeleteReq {
@@ -38,6 +43,8 @@ message ListReq {
 message ListResp {
   repeated App apps = 1;
   int64 total = 2;
+  int64 start = 3;
+  int64 limit = 4;
 }
 
 message CreateReq {
@@ -50,8 +57,8 @@ message CreateResp {
   App app = 2;
 }
 
-message AppID {
-  string value = 1;
+message GetReq {
+  int64 value = 1;
 }
 
 message Number {

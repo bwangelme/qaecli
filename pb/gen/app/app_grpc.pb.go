@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AppServiceClient interface {
-	Get(ctx context.Context, in *AppID, opts ...grpc.CallOption) (*App, error)
+	Get(ctx context.Context, in *GetReq, opts ...grpc.CallOption) (*GetResp, error)
 	Triple(ctx context.Context, in *Number, opts ...grpc.CallOption) (*Number, error)
 	Create(ctx context.Context, in *CreateReq, opts ...grpc.CallOption) (*CreateResp, error)
 	List(ctx context.Context, in *ListReq, opts ...grpc.CallOption) (*ListResp, error)
@@ -33,8 +33,8 @@ func NewAppServiceClient(cc grpc.ClientConnInterface) AppServiceClient {
 	return &appServiceClient{cc}
 }
 
-func (c *appServiceClient) Get(ctx context.Context, in *AppID, opts ...grpc.CallOption) (*App, error) {
-	out := new(App)
+func (c *appServiceClient) Get(ctx context.Context, in *GetReq, opts ...grpc.CallOption) (*GetResp, error) {
+	out := new(GetResp)
 	err := c.cc.Invoke(ctx, "/app.AppService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (c *appServiceClient) Delete(ctx context.Context, in *DeleteReq, opts ...gr
 // All implementations must embed UnimplementedAppServiceServer
 // for forward compatibility
 type AppServiceServer interface {
-	Get(context.Context, *AppID) (*App, error)
+	Get(context.Context, *GetReq) (*GetResp, error)
 	Triple(context.Context, *Number) (*Number, error)
 	Create(context.Context, *CreateReq) (*CreateResp, error)
 	List(context.Context, *ListReq) (*ListResp, error)
@@ -94,7 +94,7 @@ type AppServiceServer interface {
 type UnimplementedAppServiceServer struct {
 }
 
-func (UnimplementedAppServiceServer) Get(context.Context, *AppID) (*App, error) {
+func (UnimplementedAppServiceServer) Get(context.Context, *GetReq) (*GetResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
 func (UnimplementedAppServiceServer) Triple(context.Context, *Number) (*Number, error) {
@@ -123,7 +123,7 @@ func RegisterAppServiceServer(s grpc.ServiceRegistrar, srv AppServiceServer) {
 }
 
 func _AppService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AppID)
+	in := new(GetReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func _AppService_Get_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: "/app.AppService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).Get(ctx, req.(*AppID))
+		return srv.(AppServiceServer).Get(ctx, req.(*GetReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
