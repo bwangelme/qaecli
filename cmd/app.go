@@ -7,6 +7,7 @@ import (
 	"os"
 	pb "qaecli/pb/gen/app"
 	"qaecli/qgrpc"
+	"qaecli/render"
 	"regexp"
 	"strconv"
 	"strings"
@@ -102,6 +103,8 @@ func initListCmd() *cobra.Command {
 		Run:     listMain,
 	}
 
+	cmd.PersistentFlags().Int64("start", 0, `Start`)
+	cmd.PersistentFlags().Int64("limit", 10, `Limit`)
 	return cmd
 }
 
@@ -112,20 +115,18 @@ func listMain(cmd *cobra.Command, args []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	start, _ := cmd.PersistentFlags().GetInt64("start")
+	limit, _ := cmd.PersistentFlags().GetInt64("limit")
 	req := &pb.ListReq{
-		Start: 0,
-		Limit: 10,
+		Start: start,
+		Limit: limit,
 	}
 	r, err := c.List(ctx, req)
 	if err != nil {
 		logrus.Fatalln("grpc app list failed", err)
 	}
 
-	logrus.Printf("Total %d apps", r.Total)
-	for _, a := range r.Apps {
-		logrus.Printf("%v %v", a.Id, a.Name)
-	}
-
+	render.AppList(r, os.Stdout)
 }
 
 func initCreateCmd() *cobra.Command {
