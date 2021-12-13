@@ -24,3 +24,16 @@ func AppList(resp *pb.ListResp, w io.Writer) {
 
 	t.Render()
 }
+
+func AppInfo(resp *pb.GetResp, w io.Writer) {
+	t := table.NewWriter()
+	t.SetOutputMirror(w)
+	t.SetStyle(table.StyleColoredBright)
+
+	t.AppendHeader(table.Row{"字段", "值"})
+
+	t.AppendRow(table.Row{"Name", resp.App.Name})
+	t.AppendRow(table.Row{"Github Repo", resp.App.Repo})
+
+	t.Render()
+}
