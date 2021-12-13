@@ -29,10 +29,54 @@ func init() {
 	appCmd.AddCommand(initCreateCmd())
 	appCmd.AddCommand(initListCmd())
 	appCmd.AddCommand(initDeleteCmd())
+	appCmd.AddCommand(initInfoCmd())
 }
 
 func appMain(cmd *cobra.Command, args []string) {
+}
 
+func initInfoCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "info",
+		Aliases: []string{"i"},
+		Long:    "Get App Info",
+		Run:     InfoMain,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("require id argument")
+			}
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func InfoMain(cmd *cobra.Command, args []string) {
+	id, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		logrus.Fatalln("Invalid id", args[0], err)
+	}
+	c, df := qgrpc.NewAppClient()
+	defer df()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req := &pb.GetReq{
+		Value: id,
+	}
+
+	resp, err := c.Get(ctx, req)
+	if err != nil {
+		logrus.Fatalln("grpc get app failed", err)
+	}
+
+	if resp.Err != "" {
+		logrus.Fatalln("get app error, server return", resp.Err)
+	}
+
+	render.AppInfo(resp, os.Stdout)
 }
 
 func initDeleteCmd() *cobra.Command {
