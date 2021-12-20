@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	rootCmd.AddCommand(appCmd, checkCmd)
+	rootCmd.AddCommand(appCmd, checkCmd, commitCmd)
 	cobra.CheckErr(rootCmd.Execute())
 }
 
