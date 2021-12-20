@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"qaecli/helper"
 	pb "qaecli/pb/gen/app"
 	"qaecli/qgrpc"
 	"qaecli/render"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -40,7 +40,7 @@ func initInfoCmd() *cobra.Command {
 		Use:     "info",
 		Aliases: []string{"i"},
 		Long:    "Get App Info",
-		Run:     InfoMain,
+		Run:     infoMain,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return fmt.Errorf("require id argument")
@@ -52,7 +52,7 @@ func initInfoCmd() *cobra.Command {
 	return cmd
 }
 
-func InfoMain(cmd *cobra.Command, args []string) {
+func infoMain(cmd *cobra.Command, args []string) {
 	id, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
 		logrus.Fatalln("Invalid id", args[0], err)
@@ -84,7 +84,7 @@ func initDeleteCmd() *cobra.Command {
 		Use:     "delete",
 		Aliases: []string{"d"},
 		Long:    "Delete App",
-		Run:     DeleteMain,
+		Run:     deleteMain,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return fmt.Errorf("require id argument")
@@ -96,8 +96,8 @@ func initDeleteCmd() *cobra.Command {
 	return cmd
 }
 
-func DeleteMain(cmd *cobra.Command, args []string) {
-	ids, err := strSliceToInt64Slice(strings.Split(args[0], ","))
+func deleteMain(cmd *cobra.Command, args []string) {
+	ids, err := helper.StrSliceToInt64Slice(strings.Split(args[0], ","))
 	if err != nil {
 		logrus.Fatalln("Invalid Arg Ids")
 	}
@@ -123,20 +123,6 @@ func DeleteMain(cmd *cobra.Command, args []string) {
 	}
 
 	logrus.Infof("Delete %v apps\n", resp.Cnt)
-}
-
-func strSliceToInt64Slice(values []string) ([]int64, error) {
-	var res = make([]int64, 0)
-
-	for i := 0; i < len(values); i++ {
-		v, err := strconv.ParseInt(values[i], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, v)
-	}
-
-	return res, nil
 }
 
 func initListCmd() *cobra.Command {
@@ -201,7 +187,7 @@ func createMain(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if !isValidURL(repo) {
+	if !helper.IsValidURL(repo) {
 		logrus.Warningf("Invalid repo url `%v`", repo)
 		os.Exit(1)
 	}
@@ -226,9 +212,4 @@ func createMain(cmd *cobra.Command, args []string) {
 	}
 
 	logrus.Infof("Create app %v success\n", r.App.Id)
-}
-
-func isValidURL(repo string) bool {
-	re := regexp.MustCompile(`https?://(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
-	return re.MatchString(repo)
 }
